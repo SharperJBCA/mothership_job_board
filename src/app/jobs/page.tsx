@@ -16,7 +16,7 @@ type Job = {
 };
 
 export default async function JobsPage() {
-  const supabase = supabaseServer();
+  const supabase = await supabaseServer();
 
   const { data, error } = await supabase
     .from("jobs")
