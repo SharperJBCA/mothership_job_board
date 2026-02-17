@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
-
 type Job = {
   id: string;
   slug: string;
@@ -17,12 +16,14 @@ type Job = {
 
 export default async function JobsPage() {
   const supabase = await supabaseServer();
-
+  
   const { data, error } = await supabase
     .from("jobs")
     .select("id,slug,title,summary,payout,hazard,location,faction,tags,status,posted_at")
     .order("posted_at", { ascending: false });
-
+  const { data: auth } = await supabase.auth.getUser();
+  const user = auth.user;
+  
   if (error) {
     return (
       <main className="p-6 max-w-4xl mx-auto">
@@ -43,6 +44,9 @@ export default async function JobsPage() {
         <span className="text-xs opacity-70">
           {jobs.length} listing{jobs.length === 1 ? "" : "s"}
         </span>
+        <div className="text-xs opacity-70">
+          {user ? `Signed in: ${user.email}` : <a className="underline" href="/login">Sign in</a>}
+        </div>
       </header>
 
       <div className="mt-6 grid gap-4">
