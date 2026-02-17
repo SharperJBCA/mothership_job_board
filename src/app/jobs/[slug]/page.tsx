@@ -5,11 +5,15 @@ import ClaimButton from "./ClaimButton";
 type Params = { slug: string };
 
 type JobDetailPageProps = {
-  params: Params | Promise<Params>;
+  params: Promise<Params>;
 };
 
 export default async function JobDetailPage({ params }: JobDetailPageProps) {
-  const { slug } = await Promise.resolve(params);
+  const { slug } = await params;
+
+  // Guard against empty dynamic route values before querying the database.
+  if (!slug?.trim()) return notFound();
+
   const supabase = await supabaseServer();
 
   const { data, error } = await supabase
