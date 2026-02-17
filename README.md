@@ -20,6 +20,24 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## GM access setup
+
+The admin routes check the authenticated user against the `gm_users` table.
+
+**Required mapping:** `gm_users.user_id` must exactly match `auth.users.id` for the same user.
+
+Example SQL:
+
+```sql
+insert into public.gm_users (user_id)
+values ('<auth.users.id UUID>');
+```
+
+Optional local debug bypass:
+
+- Set `ALLOW_DEBUG_GM_EMAILS` to a comma-separated list of email addresses to temporarily grant GM access during local debugging.
+- Set `NEXT_PUBLIC_DEBUG_ADMIN_LINK=true` to show a debug link to `/admin/jobs` on the public jobs page even when signed out.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

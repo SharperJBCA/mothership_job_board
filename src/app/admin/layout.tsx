@@ -4,7 +4,10 @@ import { requireGM } from "@/lib/gm";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const gm = await requireGM();
-  if (!gm.ok) redirect("/login");
+  if (!gm.ok) {
+    if (gm.reason === "no-user") redirect("/login");
+    redirect("/jobs?error=not-authorized");
+  }
 
   return (
     <main className="p-6 max-w-5xl mx-auto">

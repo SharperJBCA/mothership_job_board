@@ -16,6 +16,7 @@ type Job = {
 
 export default async function JobsPage() {
   const supabase = await supabaseServer();
+  const debugAdminLinkEnabled = process.env.NEXT_PUBLIC_DEBUG_ADMIN_LINK === "true";
   
   const { data, error } = await supabase
     .from("jobs")
@@ -23,6 +24,7 @@ export default async function JobsPage() {
     .order("posted_at", { ascending: false });
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
+  const showDebugAdminLink = Boolean(user || debugAdminLinkEnabled);
   
   if (error) {
     return (
@@ -79,6 +81,14 @@ export default async function JobsPage() {
           </Link>
         ))}
       </div>
+
+      {showDebugAdminLink && (
+        <footer className="mt-8 border-t pt-4 text-xs opacity-80">
+          <Link className="underline" href="/admin/jobs">
+            Debug: Open GM jobs admin
+          </Link>
+        </footer>
+      )}
     </main>
   );
 }
