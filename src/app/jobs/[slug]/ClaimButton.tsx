@@ -8,10 +8,12 @@ export default function ClaimButton({
   jobId,
   canClaim,
   isMine,
+  disabledReason,
 }: {
   jobId: string;
   canClaim: boolean;
   isMine: boolean;
+  disabledReason?: string | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -60,9 +62,7 @@ export default function ClaimButton({
       )}
       {err && <p className="text-sm text-red-600">{err}</p>}
       {!canClaim && !isMine && (
-        <p className="text-xs opacity-70">
-          This contract is not available to claim.
-        </p>
+        <p className="text-xs opacity-70">{disabledReason ?? "This contract is not available to claim."}</p>
       )}
     </div>
   );

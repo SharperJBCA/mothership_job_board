@@ -4,13 +4,18 @@ import ClaimButton from "./ClaimButton";
 
 type Params = { slug: string };
 
-export default async function JobDetailPage({ params }: { params: Params }) {
+type JobDetailPageProps = {
+  params: Params | Promise<Params>;
+};
+
+export default async function JobDetailPage({ params }: JobDetailPageProps) {
+  const { slug } = await Promise.resolve(params);
   const supabase = await supabaseServer();
 
   const { data, error } = await supabase
     .from("jobs")
     .select("*")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
@@ -19,7 +24,18 @@ export default async function JobDetailPage({ params }: { params: Params }) {
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
   const isMine = !!user && data.claimed_by === user.id;
-  const canClaim = data.status === "available" && !data.claimed_by;
+  const isAvailable = data.status === "available";
+  const hasClaimedBy = !!data.claimed_by;
+  const canClaim = isAvailable && !hasClaimedBy;
+
+  let claimDisabledReason: string | null = null;
+  if (!isMine && !canClaim) {
+    if (!user) claimDisabledReason = "Sign in to claim this contract.";
+    else if (!isAvailable) claimDisabledReason = `Status is ${data.status}, not available.`;
+    else if (hasClaimedBy) claimDisabledReason = "This contract has already been claimed.";
+  }
+
+  const showDebug = process.env.NEXT_PUBLIC_DEBUG_JOB_DETAIL === "true";
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
@@ -31,6 +47,12 @@ export default async function JobDetailPage({ params }: { params: Params }) {
           <span className="uppercase tracking-wide">{data.status}</span>
         </div>
       </div>
+
+      {showDebug && (
+        <p className="mt-2 text-xs font-mono opacity-70">
+          debug user={user?.email ?? "none"} canClaim={String(canClaim)} isMine={String(isMine)}
+        </p>
+      )}
 
       <p className="mt-3 text-sm opacity-90">{data.summary}</p>
 
@@ -49,7 +71,12 @@ export default async function JobDetailPage({ params }: { params: Params }) {
       </article>
 
       <div className="mt-4">
-        <ClaimButton jobId={data.id} canClaim={!!user && canClaim} isMine={isMine} />
+        <ClaimButton
+          jobId={data.id}
+          canClaim={!!user && canClaim}
+          isMine={isMine}
+          disabledReason={claimDisabledReason}
+        />
         {!user && (
           <p className="mt-2 text-xs opacity-70">
             <a className="underline" href="/login">
