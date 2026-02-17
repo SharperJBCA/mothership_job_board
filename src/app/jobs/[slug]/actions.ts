@@ -22,6 +22,7 @@ export async function claimJob(jobId: string) {
     })
     .eq("id", jobId)
     .eq("status", "available")
+    .is("claimed_by", null)
     .select("id");
 
   if (error) {
@@ -57,6 +58,7 @@ export async function unclaimJob(jobId: string) {
     })
     .eq("id", jobId)
     .eq("claimed_by", user.id)
+    .eq("status", "claimed")
     .select("id");
 
   if (error) {
