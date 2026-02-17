@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase/browser";
+import { useRouter } from "next/navigation";
+import { claimJob, unclaimJob } from "./actions";
 
 export default function ClaimButton({
   jobId,
@@ -12,34 +13,30 @@ export default function ClaimButton({
   canClaim: boolean;
   isMine: boolean;
 }) {
-  const supabase = supabaseBrowser();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   async function claim() {
     setLoading(true);
     setErr(null);
-    const { error } = await supabase
-      .from("jobs")
-      .update({ status: "claimed", claimed_by: (await supabase.auth.getUser()).data.user?.id ?? null, claimed_at: new Date().toISOString() })
-      .eq("id", jobId);
+
+    const result = await claimJob(jobId);
 
     setLoading(false);
-    if (error) setErr(error.message);
-    else window.location.reload();
+    if (!result.ok) setErr(result.error);
+    else router.refresh();
   }
 
   async function unclaim() {
     setLoading(true);
     setErr(null);
-    const { error } = await supabase
-      .from("jobs")
-      .update({ status: "available", claimed_by: null, claimed_at: null })
-      .eq("id", jobId);
+
+    const result = await unclaimJob(jobId);
 
     setLoading(false);
-    if (error) setErr(error.message);
-    else window.location.reload();
+    if (!result.ok) setErr(result.error);
+    else router.refresh();
   }
 
   return (
