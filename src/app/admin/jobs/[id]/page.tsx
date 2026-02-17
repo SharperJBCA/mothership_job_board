@@ -2,13 +2,24 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { upsertJob, deleteJob } from "../actions";
 import { notFound } from "next/navigation";
 
-export default async function EditJobPage({ params }: { params: { id: string } }) {
+type Params = { id: string };
+
+type EditJobPageProps = {
+  params: Promise<Params>;
+};
+
+export default async function EditJobPage({ params }: EditJobPageProps) {
+  const { id } = await params;
+
+  // Guard against empty dynamic route values before querying the database.
+  if (!id?.trim()) return notFound();
+
   const supabase = await supabaseServer();
 
   const { data, error } = await supabase
     .from("jobs")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
