@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import ClaimButton from "./ClaimButton";
+import { requireGM } from "@/lib/gm";
+import { readBriefForSlug } from "@/lib/briefs";
 
 type Params = { slug: string };
 
@@ -27,6 +29,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
 
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
+  const gm = user ? await requireGM() : null;
   const isMine = !!user && data.claimed_by === user.id;
   const isAvailable = data.status === "available";
   const hasClaimedBy = !!data.claimed_by;
@@ -40,6 +43,13 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
   }
 
   const showDebug = process.env.NEXT_PUBLIC_DEBUG_JOB_DETAIL === "true";
+  const brief = await readBriefForSlug(slug, data.brief);
+  const claimedByName =
+    data.claimed_by && isMine
+      ? user?.user_metadata?.full_name || user?.email || "You"
+      : data.claimed_by
+        ? "Another operator"
+        : null;
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
@@ -71,7 +81,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
       </div>
 
       <article className="mt-6 rounded-xl border p-4 whitespace-pre-wrap leading-relaxed">
-        {data.brief}
+        {brief}
       </article>
 
       <div className="mt-4">
@@ -79,6 +89,8 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
           jobId={data.id}
           canClaim={!!user && canClaim}
           isMine={isMine}
+          isGM={!!gm?.ok}
+          claimedByName={claimedByName}
           disabledReason={claimDisabledReason}
         />
         {!user && (

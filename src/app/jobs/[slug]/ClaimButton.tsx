@@ -2,17 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { claimJob, unclaimJob } from "./actions";
+import { adminUnclaimJob, claimJob, unclaimJob } from "./actions";
 
 export default function ClaimButton({
   jobId,
   canClaim,
   isMine,
+  isGM,
+  claimedByName,
   disabledReason,
 }: {
   jobId: string;
   canClaim: boolean;
   isMine: boolean;
+  isGM: boolean;
+  claimedByName?: string | null;
   disabledReason?: string | null;
 }) {
   const router = useRouter();
@@ -24,6 +28,17 @@ export default function ClaimButton({
     setErr(null);
 
     const result = await claimJob(jobId);
+
+    setLoading(false);
+    if (!result.ok) setErr(result.error);
+    else router.refresh();
+  }
+
+  async function adminUnclaim() {
+    setLoading(true);
+    setErr(null);
+
+    const result = await adminUnclaimJob(jobId);
 
     setLoading(false);
     if (!result.ok) setErr(result.error);
@@ -63,6 +78,16 @@ export default function ClaimButton({
       {err && <p className="text-sm text-red-600">{err}</p>}
       {!canClaim && !isMine && (
         <p className="text-xs opacity-70">{disabledReason ?? "This contract is not available to claim."}</p>
+      )}
+      {claimedByName && <p className="text-xs opacity-80">Claimed by: {claimedByName}</p>}
+      {isGM && !isMine && !canClaim && (
+        <button
+          disabled={loading}
+          onClick={adminUnclaim}
+          className="justify-self-start border rounded-lg px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
+        >
+          GM: Remove claimant
+        </button>
       )}
     </div>
   );

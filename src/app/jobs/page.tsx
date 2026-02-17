@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
+import { requireGM } from "@/lib/gm";
 type Job = {
   id: string;
   slug: string;
@@ -24,7 +25,8 @@ export default async function JobsPage() {
     .order("posted_at", { ascending: false });
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
-  const showDebugAdminLink = Boolean(user || debugAdminLinkEnabled);
+  const gm = user ? await requireGM() : null;
+  const showDebugAdminLink = Boolean(debugAdminLinkEnabled || gm?.ok);
   
   if (error) {
     return (

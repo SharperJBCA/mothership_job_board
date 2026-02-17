@@ -6,7 +6,7 @@ export default async function AdminJobsPage() {
 
   const { data: jobs, error } = await supabase
     .from("jobs")
-    .select("id, slug, title, status, posted_at")
+    .select("id, slug, title, status, posted_at, claimed_by")
     .order("posted_at", { ascending: false });
 
   if (error) {
@@ -25,7 +25,10 @@ export default async function AdminJobsPage() {
           <div key={j.id} className="border rounded-xl p-3 flex items-center justify-between">
             <div>
               <div className="font-medium">{j.title}</div>
-              <div className="text-xs opacity-70">{j.slug} • {j.status}</div>
+              <div className="text-xs opacity-70">
+                {j.slug} • {j.status}
+                {j.claimed_by ? ` • claimed by ${j.claimed_by.slice(0, 8)}…` : ""}
+              </div>
             </div>
             <Link className="underline text-sm" href={`/admin/jobs/${j.id}`}>Edit</Link>
           </div>

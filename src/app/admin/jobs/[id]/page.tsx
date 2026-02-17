@@ -34,7 +34,10 @@ export default async function EditJobPage({ params }: EditJobPageProps) {
         <input name="slug" className="border rounded-lg px-3 py-2" defaultValue={data.slug} required />
         <input name="title" className="border rounded-lg px-3 py-2" defaultValue={data.title} required />
         <input name="summary" className="border rounded-lg px-3 py-2" defaultValue={data.summary} required />
-        <textarea name="brief" className="border rounded-lg px-3 py-2 min-h-[200px]" defaultValue={data.brief} required />
+        <textarea name="brief" className="border rounded-lg px-3 py-2 min-h-[200px]" defaultValue={data.brief} />
+        <p className="text-xs opacity-70">
+          Preferred: keep long-form content in <code>briefs/{data.slug}.md</code>. This field is fallback text.
+        </p>
 
         <div className="grid grid-cols-2 gap-3">
           <input name="payout" type="number" className="border rounded-lg px-3 py-2" defaultValue={data.payout} />
