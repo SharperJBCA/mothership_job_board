@@ -38,6 +38,25 @@ Optional local debug bypass:
 - Set `ALLOW_DEBUG_GM_EMAILS` to a comma-separated list of email addresses to temporarily grant GM access during local debugging.
 - Set `NEXT_PUBLIC_DEBUG_ADMIN_LINK=true` to show a debug link to `/admin/jobs` on the public jobs page even when signed out.
 
+
+
+## Supabase RLS notes (important)
+
+If you see `infinite recursion detected in policy for relation "gm_users"`, your `gm_users` select policy is self-referential.
+
+Use this policy instead:
+
+```sql
+drop policy if exists "gms can read gm list" on public.gm_users;
+create policy "gms can read gm list"
+on public.gm_users for select
+using (auth.uid() = user_id);
+```
+
+For claim/unclaim, use separate policies (claim => row ends as `claimed` by caller, unclaim => row ends as `available` with null claimant) and enforce old-row conditions in the update query (`.eq("status", "available")`, `.is("claimed_by", null)`, etc.).
+
+A ready-to-run script is included at `sql/supabase_policies_fix.sql`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
