@@ -2,27 +2,10 @@ import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import ClaimButton from "./ClaimButton";
 
-// inside component after loading `data`…
-const supabase = await supabaseServer();
-const { data: auth } = await supabase.auth.getUser();
-const user = auth.user;
-
-const isMine = user && data.claimed_by === user.id;
-const canClaim = data.status === "available" && !data.claimed_by;
-
-{/* near the bottom */}
-<ClaimButton jobId={data.id} canClaim={!!user && canClaim} isMine={!!isMine} />
-
-{!user && (
-  <p className="mt-2 text-xs opacity-70">
-    <a className="underline" href="/login">Sign in</a> to claim contracts.
-  </p>
-)}
-
 type Params = { slug: string };
 
 export default async function JobDetailPage({ params }: { params: Params }) {
-  const supabase = supabaseServer();
+  const supabase = await supabaseServer();
 
   const { data, error } = await supabase
     .from("jobs")
@@ -32,6 +15,11 @@ export default async function JobDetailPage({ params }: { params: Params }) {
 
   if (error) throw new Error(error.message);
   if (!data) return notFound();
+
+  const { data: auth } = await supabase.auth.getUser();
+  const user = auth.user;
+  const isMine = !!user && data.claimed_by === user.id;
+  const canClaim = data.status === "available" && !data.claimed_by;
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
@@ -59,6 +47,18 @@ export default async function JobDetailPage({ params }: { params: Params }) {
       <article className="mt-6 rounded-xl border p-4 whitespace-pre-wrap leading-relaxed">
         {data.brief}
       </article>
+
+      <div className="mt-4">
+        <ClaimButton jobId={data.id} canClaim={!!user && canClaim} isMine={isMine} />
+        {!user && (
+          <p className="mt-2 text-xs opacity-70">
+            <a className="underline" href="/login">
+              Sign in
+            </a>{" "}
+            to claim contracts.
+          </p>
+        )}
+      </div>
 
       <p className="mt-6 text-xs opacity-70">
         Posted {new Date(data.posted_at).toLocaleString()}
