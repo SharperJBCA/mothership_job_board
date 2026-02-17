@@ -1,6 +1,7 @@
 "use server";
 
 import { supabaseServer } from "@/lib/supabase/server";
+import { requireGM } from "@/lib/gm";
 
 export async function claimJob(jobId: string) {
   const supabase = await supabaseServer();
@@ -21,7 +22,6 @@ export async function claimJob(jobId: string) {
     })
     .eq("id", jobId)
     .eq("status", "available")
-    .is("claimed_by", null)
     .select("id");
 
   if (error) {
@@ -65,6 +65,31 @@ export async function unclaimJob(jobId: string) {
 
   if (!data || data.length === 0) {
     return { ok: false, error: "You can only unclaim contracts you claimed." };
+  }
+
+  return { ok: true };
+}
+
+export async function adminUnclaimJob(jobId: string) {
+  const gm = await requireGM();
+  if (!gm.ok) {
+    return { ok: false, error: "Only GMs can remove a claim." };
+  }
+
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("jobs")
+    .update({
+      status: "available",
+      claimed_by: null,
+      claimed_at: null,
+    })
+    .eq("id", jobId)
+    .select("id");
+
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "Contract not found." };
   }
 
   return { ok: true };

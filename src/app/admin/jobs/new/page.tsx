@@ -8,7 +8,10 @@ export default function NewJobPage() {
       <input name="slug" className="border rounded-lg px-3 py-2" placeholder="slug-like-this" required />
       <input name="title" className="border rounded-lg px-3 py-2" placeholder="Title" required />
       <input name="summary" className="border rounded-lg px-3 py-2" placeholder="Short summary" required />
-      <textarea name="brief" className="border rounded-lg px-3 py-2 min-h-[200px]" placeholder="Full brief" required />
+      <textarea name="brief" className="border rounded-lg px-3 py-2 min-h-[200px]" placeholder="Optional inline brief fallback" />
+      <p className="text-xs opacity-70">
+        Preferred: create <code>briefs/&lt;slug&gt;.md</code>. The job detail page will load that markdown file first.
+      </p>
 
       <div className="grid grid-cols-2 gap-3">
         <input name="payout" type="number" className="border rounded-lg px-3 py-2" placeholder="Payout" defaultValue={0} />

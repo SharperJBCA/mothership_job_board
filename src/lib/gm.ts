@@ -14,7 +14,13 @@ export async function requireGM() {
   if (!data.user) return { ok: false as const, reason: "no-user" as const };
 
   const debugBypassEmails = getDebugBypassEmails();
+  const debugAdminMode = process.env.NEXT_PUBLIC_DEBUG_ADMIN_LINK === "true";
   const userEmail = data.user.email?.toLowerCase();
+
+  if (debugAdminMode) {
+    return { ok: true as const, user: data.user, bypass: true as const };
+  }
+
   if (userEmail && debugBypassEmails.includes(userEmail)) {
     return { ok: true as const, user: data.user, bypass: true as const };
   }
